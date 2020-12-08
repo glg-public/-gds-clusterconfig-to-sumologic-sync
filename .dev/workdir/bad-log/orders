@@ -1,0 +1,2 @@
+export HEALTHCHECK="/diagnostic"
+autodeploy git@github.com:glg/log.git

@@ -1,0 +1,5 @@
+export SECURITY_MODE="verifiedSession"
+export SESSION_ACCESS_FLAGS=$SESSION_ROLE_GLG_ALLOW_ALL
+export HEALTHCHECK="/diagnostic"
+
+dockerdeploy github/glg-public/bounce/master

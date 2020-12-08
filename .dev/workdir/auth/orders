@@ -1,0 +1,8 @@
+export ENABLE_DEBUG="true"
+export ENABLE_VERBOSE="true"
+export ENABLE_LOGGING="true"
+export ENABLE_ERROR="true"
+export DEBUG="*"
+
+# autodeploy git@github.com:glg/glg-jwt.git#ecs
+dockerdeploy github/glg/glg-jwt/ecs

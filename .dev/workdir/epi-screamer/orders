@@ -1,0 +1,6 @@
+
+export HEALTHCHECK='/health'
+export SECURITY_MODE='public'
+
+dockerdeploy github/glg/epi-screamer/gds-migration:BAD
+dockerdeploy github/glg/epi-screamer/gds-migration:latest

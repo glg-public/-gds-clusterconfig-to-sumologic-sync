@@ -1,0 +1,14 @@
+# action.yml
+name: 'GDS Sumologic Cluster Config Uploader '
+description: 'Link GDS related service repositories to the cluster in Sumo Logic'
+inputs:
+  cluster:
+    description: 'eg. p01, i01, etc.'
+    required: true
+    default: ''
+  sumologic_config:
+    description: 'JSON with Sumo Logic API config'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
