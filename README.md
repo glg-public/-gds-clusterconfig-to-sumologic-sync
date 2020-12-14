@@ -28,6 +28,7 @@ The lookup table will make it possible to query services, and find github events
 ## Example Usage
 
 ```yaml
+name: Sync to Sumo Logic
 on:
   push:
     branches:
