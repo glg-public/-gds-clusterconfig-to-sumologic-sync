@@ -7,7 +7,7 @@ IFS=$'\n\t'
 
 function create_insert_heredoc () {
   local OUTPUT_FILE="$1"
-  cat > "${OUTPUT_FILE}" << EOF
+  cat > "${OUTPUT_FILE}" << DOC
 {
   "row": [
     { "columnName": "cluster", "columnValue": "${CLUSTER}" },
@@ -18,15 +18,30 @@ function create_insert_heredoc () {
     { "columnName": "git_branch", "columnValue": "${GIT_BRANCH}" }
   ]
 }
-EOF
+DOC
 }
 
+function dev_config_heredoc () {
+  cat << DOC
+{
+  "SUMOLOGIC_ACCESS_ID": "${SUMOLOGIC_ACCESS_ID}",
+  "SUMOLOGIC_ACCESS_KEY": "${SUMOLOGIC_ACCESS_KEY}",
+  "SUMOLOGIC_API_ENDPOINT": "https://api.us2.sumologic.com/api"
+}
+DOC
+}
+
+# if the keys are in the environment (should be dev only), use those
+if [[ -n "${SUMOLOGIC_ACCESS_ID:-}" && -n "${SUMOLOGIC_ACCESS_KEY}:-" ]]; then
+  >&2 echo ":: use dev environment sumo access variables"
+  INPUT_SUMOLOGIC_CONFIG="$(dev_config_heredoc)"
+fi
 # load the sumolgic config into environment variables
 # shellcheck source=/dev/null
 source <( \
   echo "${INPUT_SUMOLOGIC_CONFIG}" | \
   jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' \
-  )
+)
 
 if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds.clusterconfig.(.*) ]]; then
   # otherwise it has to match the gds clusterconfig repo name syntax
@@ -37,7 +52,7 @@ else
   if [[ -z "${CLUSTER}" ]]; then
     echo "Your repository must be named gds.clusterconfig.* or you have to" \
       "provide the 'cluster' github action parameter"
-    exit 1
+          exit 1
   fi
 fi
 
@@ -67,8 +82,9 @@ while IFS= read -r -d '' FILE; do
   fi
 
   if [[ "${TYPE}" == "autodeploy" ]]; then
-    # NOTE: currently does not support autodeploy without #branch specification
-    # eg. git@github.com:glg/log.git#master
+    # NOTE: autodeploy WITHOUT branch specification won't work, but
+    #       should also not be allowed via cc-screamer
+    #       eg. git@github.com:glg/log.git#master
     if [[ "${REPOSITORY}" =~ git@github.com:([^#]+).git#(.*) ]]; then
       #                                     ↑           ↑
       #                                     1 org/repo  2 branch
@@ -86,18 +102,21 @@ while IFS= read -r -d '' FILE; do
 
   create_insert_heredoc /tmp/payload
 
-  # NOTE: hardcoded for now, but likely going into a secret as well
-  TABLE_ID="0000000000F88117"
-  curl \
-    -XPUT \
-    --header 'Content-Type: application/json' \
-    --silent \
-    --show-error \
-    --user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
-    --data @/tmp/payload \
-    --output /tmp/output \
-    --write-out "status_code:%{http_code} [$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
-    "${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
-    || true
+  # NOTE: hardcoded for now, might optimize that later
+  declare -a TABLE_IDS=( "0000000000FECA82" "0000000000FE56C9" "0000000000FDB909" "0000000000FD92DF")
 
-done < <(find . -type f -name orders -maxdepth 2 -print0)
+  for TABLE_ID in "${TABLE_IDS[@]}"; do
+    curl \
+      -XPUT \
+      --header 'Content-Type: application/json' \
+      --silent \
+      --show-error \
+      --user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
+      --data @/tmp/payload \
+      --output /tmp/output \
+      --write-out "status_code:%{http_code} ${TABLE_ID},[$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
+      "${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
+      || true
+    done
+
+  done < <(find . -type f -name orders -maxdepth 2 -print0)

@@ -3,10 +3,12 @@ docker run \
   --interactive \
   --tty \
   --rm \
-  --entrypoint /bin/sh \
-  --env-file .dev/env.sample \
-  --workdir /github/workspace \
-  --name sample_action \
+  --entrypoint "/bin/sh" \
+  --env-file ".dev/env.sample" \
+  --env "SUMOLOGIC_ACCESS_ID" \
+  --env "SUMOLOGIC_ACCESS_KEY" \
+  --workdir "/github/workspace" \
+  --name "sample_action" \
   --mount "type=bind,source=$(pwd)/entrypoint.sh,target=/entrypoint.sh" \
   --mount "type=bind,source=$(pwd)/.dev/workdir,target=/github/workspace,readonly" \
-  gds-clusterconfig-to-sumologic-sync:latest
+  "gds-clusterconfig-to-sumologic-sync:latest"

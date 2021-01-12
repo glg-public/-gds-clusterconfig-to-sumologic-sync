@@ -1,0 +1,37 @@
+{
+  "description": "Map GDS cluster/service to repository",
+  "fields": [
+    {
+      "fieldName": "cluster",
+      "fieldType": "string"
+    },
+    {
+      "fieldName": "service",
+      "fieldType": "string"
+    },
+    {
+      "fieldName": "ecr_repo",
+      "fieldType": "string"
+    },
+    {
+      "fieldName": "ecr_tag",
+      "fieldType": "string"
+    },
+    {
+      "fieldName": "git_repo",
+      "fieldType": "string"
+    },
+    {
+      "fieldName": "git_branch",
+      "fieldType": "string"
+    }
+  ],
+  "primaryKeys": [
+    "cluster"
+  ],
+  "ttl": 0,
+  "sizeLimitAction": "DeleteOldData",
+  "name": "cc_cluster",
+  "parentFolderId": "0000000000F73C7F"
+}
+
