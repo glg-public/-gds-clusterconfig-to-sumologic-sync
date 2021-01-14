@@ -5,22 +5,22 @@ set -o pipefail;
 
 IFS=$'\n\t'
 
-NAME="${1}"
-SCHEMA="${NAME}.schema.json"
+NAME="${1}.schema"
+SCHEMA="${NAME}.json"
 if [[ ! -f "${SCHEMA}" ]]; then
   >&2 echo ":: missing schema file '${SCHEMA}'"
   exit 1
 fi
 
 source .access
-curl -v \
+curl --verbose \
   -XPOST \
   --header 'Content-Type: application/json' \
-  -s \
-  -S \
-  -u "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
+  --silent \
+  --show-error \
+  --user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
   --data "@${SCHEMA}" \
-  --output "create_table.${SCHEMA}.$(date +'%s').log" \
+  --output "create_table.${NAME}.$(date +'%s').log" \
   'https://api.us2.sumologic.com/api/v1/lookupTables'
 
 #https://api.sumologic.com/docs/#operation/createTable

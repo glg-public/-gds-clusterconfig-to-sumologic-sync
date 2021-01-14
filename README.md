@@ -48,3 +48,27 @@ jobs:
         sumologic_config: ${{ secrets.SUMO_LOGIC_API_ACCESS_SECRET }}
 ```
 
+## [Development](./DEVELOPMENT.md)
+
+## Sumo Logic Tables
+
+Some query helpers to quickly look at the tables:
+
+```
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster"
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster_service"
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_repository"
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_repository_branch"
+```
+
+To use them as a lookup:
+
+```
+// example
+// p_cluster and p_service could be any name, but apply to fields already available
+// in the query this is used in
+| lookup git_repo, git_branch, ecr_repo, ecr_tag
+from path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster_service"
+on p_cluster=cluster, p_service=service
+```
+

@@ -27,11 +27,14 @@
     }
   ],
   "primaryKeys": [
-    "cluster"
+    "cluster",
+    "service",
+    "git_repo",
+    "git_branch"
   ],
   "ttl": 0,
   "sizeLimitAction": "DeleteOldData",
-  "name": "cc_cluster",
-  "parentFolderId": "0000000000F73C7F"
+  "name": "cc_cluster_service_repo_branch",
+  "parentFolderId": "0000000000FD45F4"
 }
 

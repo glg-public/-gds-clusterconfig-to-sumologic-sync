@@ -103,7 +103,7 @@ while IFS= read -r -d '' FILE; do
   create_insert_heredoc /tmp/payload
 
   # NOTE: hardcoded for now, might optimize that later
-  declare -a TABLE_IDS=( "0000000000FECA82" "0000000000FE56C9" "0000000000FDB909" "0000000000FD92DF")
+  declare -a TABLE_IDS=( "0000000000FE082D" "0000000000FD4638" )
 
   for TABLE_ID in "${TABLE_IDS[@]}"; do
     curl \
