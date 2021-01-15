@@ -56,9 +56,7 @@ Some query helpers to quickly look at the tables:
 
 ```
 cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster"
-cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster_service"
-cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_repository"
-cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_repository_branch"
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster_service_repo_branch"
 ```
 
 To use them as a lookup:
