@@ -65,7 +65,7 @@ Execute the bash commands from the git repository root.
 
 > You'll see output like this, indicating that it's hitting sumo logic but unable to authenticate, which is good.
 >
-> ```
+> ```none
 > status_code:401 [p01,auth],dockerdeploy,[github/glg/glg-jwt,latest],[glg/glg-jwt,ecs]
 > status_code:401 [p01,epi-screamer],dockerdeploy,[github/glg/epi-screamer,latest],[glg/epi-screamer,gds-migration]
 > status_code:401 [p01,log],autodeploy,[p01.glgresearch.com/log,latest],[glg/log,master]
