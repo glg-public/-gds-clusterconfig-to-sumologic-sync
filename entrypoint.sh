@@ -32,7 +32,7 @@ DOC
 }
 
 # if the keys are in the environment (should be dev only), use those
-if [[ -n "${SUMOLOGIC_ACCESS_ID:-}" && -n "${SUMOLOGIC_ACCESS_KEY}:-" ]]; then
+if [[ -n "${SUMOLOGIC_ACCESS_ID:-}" && -n "${SUMOLOGIC_ACCESS_KEY:-}" ]]; then
   >&2 echo ":: use dev environment sumo access variables"
   INPUT_SUMOLOGIC_CONFIG="$(dev_config_heredoc)"
 fi

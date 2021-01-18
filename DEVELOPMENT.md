@@ -10,14 +10,14 @@ We are now using Terraform to manage the lookup tables, and the repository and w
 
 Some query helpers to quickly look at the tables:
 
-```
+```none
 cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Tables/cc_cluster"
 cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Tables/cc_cluster_service_repo_branch"
 ```
 
 To use them as a lookup:
 
-```
+```none
 // example
 // p_cluster and p_service could be any name, but apply to fields already available
 // in the query this is used in
@@ -34,7 +34,7 @@ These should be run from the `./dev/setup` directory on the host machine.
 
 ### `create_table <schema_name>`
 
-This creates a new lookup table in sumologic. 
+This creates a new lookup table in sumologic.
 
 eg: `./create_table my_table_name`
 
@@ -56,7 +56,7 @@ Execute the bash commands from the git repository root.
 # build the docker container locally
 .dev/build
 # shell into the docker container
-#   (this puts you into /github/workspace directory where 
+#   (this puts you into /github/workspace directory where
 #   the fake clusterconfig repository lives)
 .dev/shell
 # run the script to test
