@@ -2,7 +2,31 @@
 
 ## Development
 
-### Sumo Logic API Scripts
+### Terraform
+
+We are now using Terraform to manage the lookup tables, and the repository and workspace for GLG are both called **sumologic-us2**.
+
+### Sumo Logic Tables
+
+Some query helpers to quickly look at the tables:
+
+```
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Tables/cc_cluster"
+cat path://"/Library/Admin Recommended/Share Your Ideas/GDS/Tables/cc_cluster_service_repo_branch"
+```
+
+To use them as a lookup:
+
+```
+// example
+// p_cluster and p_service could be any name, but apply to fields already available
+// in the query this is used in
+| lookup git_repo, git_branch, ecr_repo, ecr_tag
+from path://"/Library/Admin Recommended/Share Your Ideas/GDS/Lookups/cc_cluster_service"
+on p_cluster=cluster, p_service=service
+```
+
+### Sumo Logic API Scripts (deprecated)
 
 These should be run from the `./dev/setup` directory on the host machine.
 
