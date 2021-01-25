@@ -73,7 +73,7 @@ while IFS= read -r -d '' FILE; do
       #                      |        2 org    3 repo   4 branch
       #                      1 source control provider (eg. github)
       ECR_REPO="${REPOSITORY}"
-      ECR_REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
+      ECR_REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}/${BASH_REMATCH[4]}"
       # ERE does not support non-capturing groups, that's why branch is in 6
       ECR_TAG="${BASH_REMATCH[6]:-latest}"
       GIT_REPO="${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
