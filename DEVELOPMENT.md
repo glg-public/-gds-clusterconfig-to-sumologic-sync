@@ -1,5 +1,27 @@
 # gds-clusterconfig-to-sumologic-sync
 
+## Notes
+
+### Rate Limits
+
+- A rate limit of four API requests per second (240 requests per minute) applies to all API calls from a user.
+- A rate limit of 10 concurrent requests to any API endpoint applies to an access key.
+
+If a rate is exceeded, a rate limit exceeded 429 status code is returned.
+
+### Old Data
+
+The Sumo Logic API can delete rows via:
+
+- TTL
+- Delete Row API call
+
+The problem is, that you cannot query a table via API.  Since our use case for these tables is based on commits to a clusterconfig repo, TTLs are not really ideal.
+
+We'll likely have to look at the diff related to a commit/PR in order to determine what needs to be deleted.
+
+Another option would be to issue a query against the lookup table, and find the data that way, but need to still look into the complexity behind that.
+
 ## Development
 
 ### Terraform
