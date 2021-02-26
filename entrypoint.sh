@@ -5,20 +5,19 @@ set -o pipefail;
 
 IFS=$'\n\t'
 
-function create_insert_heredoc () {
+function lookup_upload_entry_heredoc () {
   local OUTPUT_FILE="$1"
-  cat > "${OUTPUT_FILE}" << DOC
+  cat << DOC |
 {
-  "row": [
-    { "columnName": "cluster", "columnValue": "${CLUSTER}" },
-    { "columnName": "service", "columnValue": "${SERVICE}" },
-    { "columnName": "ecr_repo", "columnValue": "${ECR_REPO}" },
-    { "columnName": "ecr_tag", "columnValue": "${ECR_TAG}" },
-    { "columnName": "git_repo", "columnValue": "${GIT_REPO}" },
-    { "columnName": "git_branch", "columnValue": "${GIT_BRANCH}" }
-  ]
+  "cluster": "${CLUSTER}",
+  "service": "${SERVICE}",
+  "ecr_repo": "${ECR_REPO}",
+  "ecr_tag": "${ECR_TAG}",
+  "git_repo": "${GIT_REPO}",
+  "git_branch": "${GIT_BRANCH}"
 }
 DOC
+jq -cM '.' >> "${OUTPUT_FILE}"
 }
 
 function dev_config_heredoc () {
@@ -56,6 +55,7 @@ else
   fi
 fi
 
+rm -rf '/tmp/payload'
 while IFS= read -r -d '' FILE; do
   unset SERVICE ECR_REPO GIT_REPO GIT_BRANCH TYPE REPOSITORY
   # service is based on directory name
@@ -100,23 +100,23 @@ while IFS= read -r -d '' FILE; do
     continue
   fi
 
-  create_insert_heredoc /tmp/payload
+  lookup_upload_entry_heredoc '/tmp/payload'
 
-  # NOTE: hardcoded for now, might optimize that later
-  declare -a TABLE_IDS=( "0000000001007719" "0000000000FF668A" )
+  ## NOTE: hardcoded for now, might optimize that later
+  #declare -a TABLE_IDS=( "0000000001007719" "0000000000FF668A" )
 
-  for TABLE_ID in "${TABLE_IDS[@]}"; do
-    curl \
-      -XPUT \
-      --header 'Content-Type: application/json' \
-      --silent \
-      --show-error \
-      --user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
-      --data @/tmp/payload \
-      --output /tmp/output \
-      --write-out "status_code:%{http_code} ${TABLE_ID},[$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
-      "${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
-      || true
-    done
+  #for TABLE_ID in "${TABLE_IDS[@]}"; do
+    #curl \
+      #-XPUT \
+      #--header 'Content-Type: application/json' \
+      #--silent \
+      #--show-error \
+      #--user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
+      #--data @/tmp/payload \
+      #--output /tmp/output \
+      #--write-out "status_code:%{http_code} ${TABLE_ID},[$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
+      #"${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
+      #|| true
+    #done
 
   done < <(find . -type f -name orders -maxdepth 2 -print0)

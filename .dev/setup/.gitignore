@@ -1,4 +1,0 @@
-*.log
-!create_table.*.log
-.*
-!.gitignore
