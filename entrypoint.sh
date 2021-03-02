@@ -42,9 +42,9 @@ source <( \
   jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' \
 )
 
-if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds.clusterconfig.(.*) ]]; then
+if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds\.(china\.)?clusterconfig\.(.*) ]]; then
   # otherwise it has to match the gds clusterconfig repo name syntax
-  CLUSTER="${BASH_REMATCH[1]}"
+  CLUSTER="${BASH_REMATCH[2]}"
 else
   # override if provided via the action
   CLUSTER="${INPUT_CLUSTER}"
@@ -96,27 +96,14 @@ while IFS= read -r -d '' FILE; do
   fi
 
   if [[ -z "${GIT_REPO:-}" ]]; then
-    echo "error: ${CLUSTER}/${FILE}: unable to extract GIT_REPO"
+    echo "warning: ${CLUSTER}/${FILE}: unable to extract GIT_REPO"
     continue
   fi
 
   lookup_upload_entry_heredoc '/tmp/payload'
 
-  ## NOTE: hardcoded for now, might optimize that later
-  #declare -a TABLE_IDS=( "0000000001007719" "0000000000FF668A" )
+done < <(find . -maxdepth 2 -type f -name orders -print0)
 
-  #for TABLE_ID in "${TABLE_IDS[@]}"; do
-    #curl \
-      #-XPUT \
-      #--header 'Content-Type: application/json' \
-      #--silent \
-      #--show-error \
-      #--user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
-      #--data @/tmp/payload \
-      #--output /tmp/output \
-      #--write-out "status_code:%{http_code} ${TABLE_ID},[$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
-      #"${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
-      #|| true
-    #done
-
-  done < <(find . -type f -name orders -maxdepth 2 -print0)
+# need to make sure the file exists, even if the CC contains no orders
+touch '/tmp/payload'
+node '/app/uploader/process-updates.js'

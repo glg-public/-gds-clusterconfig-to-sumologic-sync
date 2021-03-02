@@ -131,6 +131,7 @@ const loadClusterServices = async ({clusterConfigExport}) => {
   return input
   .trim()
   .split('\n')
+  .filter(v => v) // remove empty rows from array
   .map(row => JSON.parse(row));
 };
 
@@ -207,6 +208,7 @@ const removeExpiredEntries = async({sumo}, lookupTable) => {
 
   } catch (error) {
     // important to exit with a failure code for the action to abort
+    console.error(error);
     process.exit(1);
   }
 })();
