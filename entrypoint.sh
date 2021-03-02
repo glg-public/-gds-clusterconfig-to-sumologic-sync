@@ -63,7 +63,7 @@ while IFS= read -r -d '' FILE; do
 
   # parse out the deploy commands we support
   IFS=$' \t' read -r TYPE REPOSITORY <<< \
-    "$(grep -e "^\(auto\|docker\)deploy\s" "$FILE" | tail -n1)"
+    "$(grep -e "^\(autodeploy\|dockerdeploy\|dockerbuild\)\s" "$FILE" | tail -n1)"
 
   if [[ "${TYPE}" == "dockerdeploy" ]]; then
     # eg. github/glg/epi-screamer/gds-migration:latest
@@ -78,6 +78,20 @@ while IFS= read -r -d '' FILE; do
       ECR_TAG="${BASH_REMATCH[6]:-latest}"
       GIT_REPO="${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
       GIT_BRANCH="${BASH_REMATCH[4]}"
+    fi
+  fi
+
+  if [[ "${TYPE}" == "dockerbuild"  ]]; then
+    # NOTE: dockerbuild WITHOUT branch specification won't work, but
+    #       should also not be allowed via cc-screamer
+    #       eg. git@github.com:glg/log.git#master
+    if [[ "${REPOSITORY}" =~ git@github.com:([^#]+).git#(.*) ]]; then
+      #                                     ↑           ↑
+      #                                     1 org/repo  2 branch
+      ECR_REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+      ECR_TAG="latest"
+      GIT_REPO="${BASH_REMATCH[1]}"
+      GIT_BRANCH="${BASH_REMATCH[2]}"
     fi
   fi
 
