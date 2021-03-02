@@ -105,7 +105,7 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
       result[table.id] = search.messages.reduce(
         (final, {map: {cluster, service, git_repo, git_branch, ecr_repo, ecr_tag}}) => {
           if (cluster === targetCluster) {
-            final[`${cluster}|${service}`] = {
+            final[`${cluster}|${service}|${git_repo}|${git_branch}`] = {
               cluster, service, git_repo, git_branch, ecr_repo, ecr_tag
             };
           }
@@ -152,7 +152,9 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
         console.log(`:: start upload ${kv({tableId})} ${kv(entry)}`);
         // regardless of success, we'll remove any attempted processing on entries
         // from the list, so they are not removed.
-        delete lookupTable[tableId][`${entry.cluster}|${entry.service}`]
+        delete lookupTable[tableId][
+          `${entry.cluster}|${entry.service}|${entry.git_repo}|${entry.git_branch}`
+        ]
         // upload the entry to sumo logic. logs errors, but proceed regardless.
         const { status, data } = await sumoRequest({
           sumo
@@ -175,18 +177,19 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
 const removeExpiredEntries = async({sumo}, lookupTable) => {
   for (const [tableId, entries] of Object.entries(lookupTable)) {
     for (const {cluster, service, git_repo, git_branch} of Object.values(entries)) {
-      console.log(`:: start delete ${kv({tableId})} ${kv({cluster, service})}`);
+      const primaryKeys = {cluster, service, git_repo, git_branch};
+      console.log(`:: start delete ${kv({tableId})} ${kv(primaryKeys)}`);
       const { status, data } = await sumoRequest({
         sumo
         , url: `/v1/lookupTables/${tableId}/deleteTableRow`
         , method: 'put'
-        , payload: deleteLookupPayload({cluster, service, git_repo, git_branch})
+        , payload: deleteLookupPayload(primaryKeys)
         , preSleep: 1500
       })
       .catch(error => {
         return {status: -1, data: null};
       });
-      console.log(`:: end delete ${kv({tableId})} ${kv({status})} ${kv({cluster, service})}`);
+      console.log(`:: end delete ${kv({tableId})} ${kv({status})} ${kv(primaryKeys)}`);
     }
   }
 };
