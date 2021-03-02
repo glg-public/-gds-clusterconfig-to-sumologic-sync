@@ -101,7 +101,7 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
         })
       );
       result[table.id] = search.messages.reduce(
-        (final, {map: {cluster, service, git_repo, git_branch}}) => {
+        (final, {map: {cluster, service, git_repo, git_branch, ecr_repo, ecr_tag}}) => {
           if (cluster === targetCluster) {
             final[`${cluster}|${service}`] = {
               cluster, service, git_repo, git_branch, ecr_repo, ecr_tag
@@ -140,6 +140,7 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
   await mapC(clusterServices
     , async (entry, index) => {
       for (const tableId of Object.keys(lookupTable)) {
+        console.log(`:: start upload ${kv({tableId})} ${kv(entry)}`);
         const { status, data } = await sumoRequest({
           sumo
           , url: `/v1/lookupTables/${tableId}/row`
@@ -147,9 +148,10 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
           , payload: createLookupPayload(entry)
           , preSleep: 1500
         });
-        console.log({status, data});
+        console.log(`:: end upload ${kv({tableId})} ${kv({status})} ${kv(entry)}`);
+        delete lookupTable[tableId][`${entry.cluster}|${entry.service}`]
       }
-      process.exit(1)
+      throw new Error('test');
     }
     , {concurrency: 1}
   );
@@ -168,7 +170,8 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
     console.log(clusterServices);
     const lookupTable = await fetchClusterLookups(config);
     console.log(lookupTable);
-    await uploadToLookups(config, clusterServices, lookupTable);
+    await uploadToLookups(config, clusterServices, lookupTable).catch(() => true);
+    console.log(lookupTable);
 
   } catch (error) {
     console.error(error);
