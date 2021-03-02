@@ -3,7 +3,9 @@ const { mkdir, readFile, writeFile, access } = require('fs/promises');
 const { constants: { F_OK } } = require('fs');
 const { sumoRequest, sumoJob, sumoSearch } = require('./sumologic');
 
-// export GITHUB_REPOSITORY='/home/phadviger/code/glg/gds-clusterconfig-to-sumologic-sync/.dev/workdir'
+// NOTE: The "main()" method is at the bottom of the file, start there!
+// https://api.us2.sumologic.com/docs/#tag/lookupManagement
+
 const createConfig = () => {
   // GitHub Action Inputs
   let {
@@ -136,25 +138,56 @@ const createLookupPayload = (entry) => ({
   "row": Object.entries(entry).map(([k, v]) => ({ "columnName": k, "columnValue": v }))
 });
 
+const deleteLookupPayload = (entry) => ({
+  "primaryKey": Object.entries(entry).map(([k, v]) => ({ "columnName": k, "columnValue": v }))
+});
+
 const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
+  // loop through all the cluster/service entries
   await mapC(clusterServices
     , async (entry, index) => {
+      // process them once per lookup table
       for (const tableId of Object.keys(lookupTable)) {
         console.log(`:: start upload ${kv({tableId})} ${kv(entry)}`);
+        // regardless of success, we'll remove any attempted processing on entries
+        // from the list, so they are not removed.
+        delete lookupTable[tableId][`${entry.cluster}|${entry.service}`]
+        // upload the entry to sumo logic. logs errors, but proceed regardless.
         const { status, data } = await sumoRequest({
           sumo
           , url: `/v1/lookupTables/${tableId}/row`
           , method: 'put'
           , payload: createLookupPayload(entry)
           , preSleep: 1500
+        })
+        .catch(error => {
+          console.error(error);
+          return {status: -1, data: null};
         });
         console.log(`:: end upload ${kv({tableId})} ${kv({status})} ${kv(entry)}`);
-        delete lookupTable[tableId][`${entry.cluster}|${entry.service}`]
       }
-      throw new Error('test');
     }
     , {concurrency: 1}
   );
+};
+
+const removeExpiredEntries = async({sumo}, lookupTable) => {
+  for (const [tableId, entries] of Object.entries(lookupTable)) {
+    for (const {cluster, service, git_repo, git_branch} of Object.values(entries)) {
+      console.log(`:: start delete ${kv({tableId})} ${kv({cluster, service})}`);
+      const { status, data } = await sumoRequest({
+        sumo
+        , url: `/v1/lookupTables/${tableId}/deleteTableRow`
+        , method: 'put'
+        , payload: deleteLookupPayload({cluster, service, git_repo, git_branch})
+        , preSleep: 1500
+      })
+      .catch(error => {
+        return {status: -1, data: null};
+      });
+      console.log(`:: end delete ${kv({tableId})} ${kv({status})} ${kv({cluster, service})}`);
+    }
+  }
 };
 
 (async () => {
@@ -167,14 +200,12 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
     await mkdir(config.dataDir, { recursive: true });
 
     const clusterServices = await loadClusterServices(config);
-    console.log(clusterServices);
     const lookupTable = await fetchClusterLookups(config);
-    console.log(lookupTable);
-    await uploadToLookups(config, clusterServices, lookupTable).catch(() => true);
-    console.log(lookupTable);
+    // NOTE: commenting out the upload would clear the lookup table data for this cluster
+    await uploadToLookups(config, clusterServices, lookupTable);
+    await removeExpiredEntries(config, lookupTable);
 
   } catch (error) {
-    console.error(error);
     // important to exit with a failure code for the action to abort
     process.exit(1);
   }
