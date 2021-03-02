@@ -19,7 +19,7 @@ const createConfig = () => {
   return {
     sumo: { id, key, endpoint }
     , dataDir: '/tmp/sumologic_data'
-    , uploadEntries: '/tmp/payload'
+    , clusterConfigExport: '/tmp/payload'
     , repoDir: process.env.GITHUB_REPOSITORY
     , targetCluster: process.env.INPUT_CLUSTER
     , tableIds: ["0000000001007719", "0000000000FF668A"]
@@ -84,8 +84,7 @@ const createSearchPayload = ({path}) => {
 const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, tableIds}) => {
   console.log(`:: processing ${tableIds.length} table(s)`);
   const result = {};
-  await mapC(
-    tableIds
+  await mapC(tableIds
     , async (tableId, index) => {
       console.log(`:: table_index='${index}' id='${tableId}'`);
       const {table} = await getTableInfo({sumo, dataDir, tableId});
@@ -104,7 +103,9 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
       result[table.id] = search.messages.reduce(
         (final, {map: {cluster, service, git_repo, git_branch}}) => {
           if (cluster === targetCluster) {
-            final[`${cluster}|${service}`] = {cluster, service, git_repo, git_branch};
+            final[`${cluster}|${service}`] = {
+              cluster, service, git_repo, git_branch, ecr_repo, ecr_tag
+            };
           }
           return final;
         }
@@ -123,12 +124,35 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
   return result;
 };
 
-const loadClusterServices = async ({uploadEntries}) => {
-  const input = await readFile(uploadEntries, 'utf8');
+const loadClusterServices = async ({clusterConfigExport}) => {
+  const input = await readFile(clusterConfigExport, 'utf8');
   return input
   .trim()
   .split('\n')
   .map(row => JSON.parse(row));
+};
+
+const createLookupPayload = (entry) => ({
+  "row": Object.entries(entry).map(([k, v]) => ({ "columnName": k, "columnValue": v }))
+});
+
+const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
+  await mapC(clusterServices
+    , async (entry, index) => {
+      for (const tableId of Object.keys(lookupTable)) {
+        const { status, data } = await sumoRequest({
+          sumo
+          , url: `/v1/lookupTables/${tableId}/row`
+          , method: 'put'
+          , payload: createLookupPayload(entry)
+          , preSleep: 1500
+        });
+        console.log({status, data});
+      }
+      process.exit(1)
+    }
+    , {concurrency: 1}
+  );
 };
 
 (async () => {
@@ -141,8 +165,10 @@ const loadClusterServices = async ({uploadEntries}) => {
     await mkdir(config.dataDir, { recursive: true });
 
     const clusterServices = await loadClusterServices(config);
-    const mappings = await fetchClusterLookups(config);
-    console.log(mappings);
+    console.log(clusterServices);
+    const lookupTable = await fetchClusterLookups(config);
+    console.log(lookupTable);
+    await uploadToLookups(config, clusterServices, lookupTable);
 
   } catch (error) {
     console.error(error);

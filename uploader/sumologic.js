@@ -4,7 +4,7 @@ const axios = require('axios');
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const sumoRequest = async ({
-  sumo, url, admin=false, method='get', payload=null
+  sumo, url, admin=false, method='get', payload=null, preSleep=0
 }) => {
   // sometimes it's prefixed with the endpoint, sometimes not
   const safeUrl = url.replace(sumo.endpoint, '');
@@ -24,6 +24,7 @@ const sumoRequest = async ({
     args.headers['Content-Type'] = 'application/json';
     args.data = payload;
   }
+  await sleep(preSleep);
   const { status, data } = await axios(args);
   return { status, data };
 };
