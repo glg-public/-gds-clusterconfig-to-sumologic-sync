@@ -23,7 +23,7 @@ The lookup table will make it possible to query services, and find github events
 | Input            | Description                                                  | Default      |
 | ---------------- | ------------------------------------------------------------ | ------------ |
 | sumologic_config | See `SUMO_LOGIC_API_ACCESS_SECRET` in **Requirements**       | **REQUIRED** |
-| cluster          | eg. p01, i01, etc...<br />This is **optional** if the repository name follows the `gds.clusterconfig.*` naming convention. | ""           |
+| cluster          | eg. p01, i01, etc...<br />This is **optional** if the repository name follows the `gds[.](china[.])?clusterconfig[.][jips][0-9]{2}` naming convention. | ""           |
 
 ## Example Usage
 
@@ -43,7 +43,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Sync to Sumo Logic
       id: sync
-      uses: glg-public/gds-clusterconfig-to-sumologic-sync@v1.0.0
+      uses: glg-public/gds-clusterconfig-to-sumologic-sync@main
       with:
         sumologic_config: ${{ secrets.SUMO_LOGIC_API_ACCESS_SECRET }}
 ```

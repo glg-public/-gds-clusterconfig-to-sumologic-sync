@@ -16,6 +16,7 @@ const sumoRequest = async ({
       , password: sumo.key
     }
     , headers: {}
+    , validateStatus: false
   }
   if (admin === true) {
     args.headers.isAdminMode = 'true';

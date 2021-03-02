@@ -1,5 +1,9 @@
 # Changelog
 
+- 1.2.0
+  - `entrypoint.sh` now passes the insert, update, delete off to the `publish-updates.js` script
+  - rows that are no longer used are now being cleaned up in the lookup tables
+  - created `Makefile` for development
 - 1.1.0
   - Using new tables
     - `Share Your Ideas/GDS/Tables/cc_cluster_service`

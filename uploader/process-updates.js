@@ -64,15 +64,20 @@ const mapC = async (data, callback, {concurrency=1} = {}) => {
 const kv = obj => Object.entries(obj).map(([k, v]) => `${k}='${v}'`).join(' ');
 
 const getTableInfo = async ({sumo, dataDir, tableId}) => {
-  const data = await cacheWrapper(
-    `${dataDir}/${tableId}.json`
+  const outputFile =  `${dataDir}/${tableId}.json`;
+  const res = await cacheWrapper(
+    outputFile
     , () => sumoRequest({
       sumo
       , url: `/v1/lookupTables/${tableId}`
       , admin: true
     })
   );
-  const {data: {contentPath, name}} = data;
+  const {status, data} = res;
+  if (!(status >= 200 && status <= 299)) {
+    throw new Error(JSON.stringify(res));
+  }
+  const {contentPath, name} = data;
   return {table: {name, path: contentPath, id: tableId}};
 };
 
@@ -120,9 +125,6 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
     // APIs up from 240/min/user
     , {concurrency: 1}
   )
-  .catch(error => {
-    console.error(error);
-  });
   return result;
 };
 
