@@ -24,7 +24,9 @@ const createConfig = () => {
     , clusterConfigExport: '/tmp/payload'
     , repoDir: process.env.GITHUB_REPOSITORY
     , targetCluster: process.env.INPUT_CLUSTER
-    , tableIds: ["0000000001007719", "0000000000FF668A"]
+    // TODO: Need to make these configurable, but have to find proper place
+    , tableIds: ["0000000001007719", "0000000000FF668A"] // PROD
+    //, tableIds: ["00000000010D6C07", "00000000010D4453"] // DEV
   };
 };
 
@@ -178,6 +180,7 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
 
 const removeExpiredEntries = async({sumo}, lookupTable) => {
   for (const [tableId, entries] of Object.entries(lookupTable)) {
+    console.log(`:: length='${Object.values(entries).length}'`);
     for (const {cluster, service, git_repo, git_branch} of Object.values(entries)) {
       const primaryKeys = {cluster, service, git_repo, git_branch};
       console.log(`:: start delete ${kv({tableId})} ${kv(primaryKeys)}`);
