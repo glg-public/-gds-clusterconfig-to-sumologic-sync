@@ -111,6 +111,7 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
       );
       result[table.id] = search.messages.reduce(
         (final, {map: {cluster, service, git_repo, git_branch, ecr_repo, ecr_tag}}) => {
+          console.log(table.id, targetCluster, cluster, service, git_repo, git_branch, ecr_repo, ecr_tag);
           if (cluster === targetCluster) {
             final[`${cluster}|${service}|${git_repo}|${git_branch}`] = {
               cluster, service, git_repo, git_branch, ecr_repo, ecr_tag
@@ -180,7 +181,6 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
 
 const removeExpiredEntries = async({sumo}, lookupTable) => {
   for (const [tableId, entries] of Object.entries(lookupTable)) {
-    console.log(`:: length='${Object.values(entries).length}'`);
     for (const {cluster, service, git_repo, git_branch} of Object.values(entries)) {
       const primaryKeys = {cluster, service, git_repo, git_branch};
       console.log(`:: start delete ${kv({tableId})} ${kv(primaryKeys)}`);
@@ -211,11 +211,8 @@ const removeExpiredEntries = async({sumo}, lookupTable) => {
     const clusterServices = await loadClusterServices(config);
     const lookupTable = await fetchClusterLookups(config);
     // NOTE: commenting out the upload would clear the lookup table data for this cluster
-    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
     await uploadToLookups(config, clusterServices, lookupTable);
-    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
     await removeExpiredEntries(config, lookupTable);
-    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
 
   } catch (error) {
     // important to exit with a failure code for the action to abort
