@@ -31,5 +31,9 @@ shell: build
 		--mount "type=bind,source=$(shell pwd)/.dev/workdir,target=/github/workspace,readonly" \
 		"gds-clusterconfig-to-sumologic-sync:latest"
 
-.PHONY: main build rebuild shell
+reset_workdir:
+	rm -r ".dev/workdir"/*
+	git checkout -- ".dev/workdir/."
+
+.PHONY: main build rebuild shell reset_workdir
 

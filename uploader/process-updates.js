@@ -23,7 +23,7 @@ const createConfig = () => {
     , dataDir: '/tmp/sumologic_data'
     , clusterConfigExport: '/tmp/payload'
     , repoDir: process.env.GITHUB_REPOSITORY
-    , targetCluster: process.env.INPUT_CLUSTER
+    , targetCluster: process.env.CLUSTER
     // TODO: Need to make these configurable, but have to find proper place
     , tableIds: ["0000000001007719", "0000000000FF668A"] // PROD
     //, tableIds: ["00000000010D6C07", "00000000010D4453"] // DEV
@@ -111,7 +111,6 @@ const fetchClusterLookups = async ({sumo, dataDir, repoDir, targetCluster, table
       );
       result[table.id] = search.messages.reduce(
         (final, {map: {cluster, service, git_repo, git_branch, ecr_repo, ecr_tag}}) => {
-          console.log(table.id, targetCluster, cluster, service, git_repo, git_branch, ecr_repo, ecr_tag);
           if (cluster === targetCluster) {
             final[`${cluster}|${service}|${git_repo}|${git_branch}`] = {
               cluster, service, git_repo, git_branch, ecr_repo, ecr_tag

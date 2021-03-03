@@ -20,28 +20,6 @@ DOC
 jq -cM '.' >> "${OUTPUT_FILE}"
 }
 
-function dev_config_heredoc () {
-  cat << DOC
-{
-  "SUMOLOGIC_ACCESS_ID": "${SUMOLOGIC_ACCESS_ID}",
-  "SUMOLOGIC_ACCESS_KEY": "${SUMOLOGIC_ACCESS_KEY}",
-  "SUMOLOGIC_API_ENDPOINT": "https://api.us2.sumologic.com/api"
-}
-DOC
-}
-
-# if the keys are in the environment (should be dev only), use those
-if [[ -n "${SUMOLOGIC_ACCESS_ID:-}" && -n "${SUMOLOGIC_ACCESS_KEY:-}" ]]; then
-  >&2 echo ":: use dev environment sumo access variables"
-  INPUT_SUMOLOGIC_CONFIG="$(dev_config_heredoc)"
-fi
-# load the sumolgic config into environment variables
-# shellcheck source=/dev/null
-source <( \
-  echo "${INPUT_SUMOLOGIC_CONFIG}" | \
-  jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' \
-)
-
 if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds\.(china\.)?clusterconfig\.(.*) ]]; then
   # otherwise it has to match the gds clusterconfig repo name syntax
   CLUSTER="${BASH_REMATCH[2]}"
@@ -54,6 +32,7 @@ else
           exit 1
   fi
 fi
+export CLUSTER
 
 rm -rf '/tmp/payload'
 while IFS= read -r -d '' FILE; do
