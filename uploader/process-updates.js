@@ -211,11 +211,11 @@ const removeExpiredEntries = async({sumo}, lookupTable) => {
     const clusterServices = await loadClusterServices(config);
     const lookupTable = await fetchClusterLookups(config);
     // NOTE: commenting out the upload would clear the lookup table data for this cluster
-    console.log(lookupTable);
+    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
     await uploadToLookups(config, clusterServices, lookupTable);
-    console.log(lookupTable);
+    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
     await removeExpiredEntries(config, lookupTable);
-    console.log(lookupTable);
+    console.log(Buffer.from(JSON.stringify(lookupTable)).toString('base64'));
 
   } catch (error) {
     // important to exit with a failure code for the action to abort
