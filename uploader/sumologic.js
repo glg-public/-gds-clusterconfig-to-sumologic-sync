@@ -188,6 +188,7 @@ const sumoSearch = async ({sumo, url: initUrl, payload}) => {
   const { status, data } = await sumoRequest({
     sumo, url: resultUrl(jobId)
   });
+  console.log(status, data);
 
   if (status !== 200) {
     throw new Error(`:: ${url} could not fetch data`);
