@@ -1,7 +1,7 @@
 'use strict';
 const { mkdir, readFile, writeFile, access } = require('fs/promises');
 const { constants: { F_OK } } = require('fs');
-const { sumoRequest, sumoJob, sumoSearch } = require('./sumologic');
+const { sumoRequest, sumoSearch } = require('./sumologic');
 
 // NOTE: The "main()" method is at the bottom of the file, start there!
 // https://api.us2.sumologic.com/docs/#tag/lookupManagement
