@@ -1,6 +1,6 @@
 {
   "name": "gds-clusterconfig-to-sumologic-sync",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "refresh clusterconfig lookup tables in sumo logic",
   "main": "process-updates.js",
   "scripts": {},
