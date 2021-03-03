@@ -1,0 +1,8 @@
+# Container image that runs your code
+FROM node:14.16-alpine3.12
+
+RUN apk add \
+  jq \
+  curl \
+  git \
+  bash

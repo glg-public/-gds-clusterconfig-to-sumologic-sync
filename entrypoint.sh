@@ -5,20 +5,19 @@ set -o pipefail;
 
 IFS=$'\n\t'
 
-function create_insert_heredoc () {
+function lookup_upload_entry_heredoc () {
   local OUTPUT_FILE="$1"
-  cat > "${OUTPUT_FILE}" << DOC
+  cat << DOC |
 {
-  "row": [
-    { "columnName": "cluster", "columnValue": "${CLUSTER}" },
-    { "columnName": "service", "columnValue": "${SERVICE}" },
-    { "columnName": "ecr_repo", "columnValue": "${ECR_REPO}" },
-    { "columnName": "ecr_tag", "columnValue": "${ECR_TAG}" },
-    { "columnName": "git_repo", "columnValue": "${GIT_REPO}" },
-    { "columnName": "git_branch", "columnValue": "${GIT_BRANCH}" }
-  ]
+  "cluster": "${CLUSTER}",
+  "service": "${SERVICE}",
+  "ecr_repo": "${ECR_REPO}",
+  "ecr_tag": "${ECR_TAG}",
+  "git_repo": "${GIT_REPO}",
+  "git_branch": "${GIT_BRANCH}"
 }
 DOC
+jq -cM '.' >> "${OUTPUT_FILE}"
 }
 
 function dev_config_heredoc () {
@@ -43,9 +42,9 @@ source <( \
   jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' \
 )
 
-if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds.clusterconfig.(.*) ]]; then
+if [[ "${GITHUB_REPOSITORY}" =~ [^/]+\/gds\.(china\.)?clusterconfig\.(.*) ]]; then
   # otherwise it has to match the gds clusterconfig repo name syntax
-  CLUSTER="${BASH_REMATCH[1]}"
+  CLUSTER="${BASH_REMATCH[2]}"
 else
   # override if provided via the action
   CLUSTER="${INPUT_CLUSTER}"
@@ -56,6 +55,7 @@ else
   fi
 fi
 
+rm -rf '/tmp/payload'
 while IFS= read -r -d '' FILE; do
   unset SERVICE ECR_REPO GIT_REPO GIT_BRANCH TYPE REPOSITORY
   # service is based on directory name
@@ -63,7 +63,7 @@ while IFS= read -r -d '' FILE; do
 
   # parse out the deploy commands we support
   IFS=$' \t' read -r TYPE REPOSITORY <<< \
-    "$(grep -e "^\(auto\|docker\)deploy\s" "$FILE" | tail -n1)"
+    "$(grep -e "^\(autodeploy\|dockerdeploy\|dockerbuild\)\s" "$FILE" | tail -n1)"
 
   if [[ "${TYPE}" == "dockerdeploy" ]]; then
     # eg. github/glg/epi-screamer/gds-migration:latest
@@ -78,6 +78,20 @@ while IFS= read -r -d '' FILE; do
       ECR_TAG="${BASH_REMATCH[6]:-latest}"
       GIT_REPO="${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
       GIT_BRANCH="${BASH_REMATCH[4]}"
+    fi
+  fi
+
+  if [[ "${TYPE}" == "dockerbuild"  ]]; then
+    # NOTE: dockerbuild WITHOUT branch specification won't work, but
+    #       should also not be allowed via cc-screamer
+    #       eg. git@github.com:glg/log.git#master
+    if [[ "${REPOSITORY}" =~ git@github.com:([^#]+).git#(.*) ]]; then
+      #                                     ↑           ↑
+      #                                     1 org/repo  2 branch
+      ECR_REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+      ECR_TAG="latest"
+      GIT_REPO="${BASH_REMATCH[1]}"
+      GIT_BRANCH="${BASH_REMATCH[2]}"
     fi
   fi
 
@@ -96,27 +110,14 @@ while IFS= read -r -d '' FILE; do
   fi
 
   if [[ -z "${GIT_REPO:-}" ]]; then
-    echo "error: ${CLUSTER}/${FILE}: unable to extract GIT_REPO"
+    echo "warning: ${CLUSTER}/${FILE}: unable to extract GIT_REPO"
     continue
   fi
 
-  create_insert_heredoc /tmp/payload
+  lookup_upload_entry_heredoc '/tmp/payload'
 
-  # NOTE: hardcoded for now, might optimize that later
-  declare -a TABLE_IDS=( "0000000001007719" "0000000000FF668A" )
+done < <(find . -maxdepth 2 -type f -name orders -print0)
 
-  for TABLE_ID in "${TABLE_IDS[@]}"; do
-    curl \
-      -XPUT \
-      --header 'Content-Type: application/json' \
-      --silent \
-      --show-error \
-      --user "${SUMOLOGIC_ACCESS_ID}:${SUMOLOGIC_ACCESS_KEY}" \
-      --data @/tmp/payload \
-      --output /tmp/output \
-      --write-out "status_code:%{http_code} ${TABLE_ID},[$CLUSTER,$SERVICE],$TYPE,[$ECR_REPO,$ECR_TAG],[$GIT_REPO,$GIT_BRANCH]\n" \
-      "${SUMOLOGIC_API_ENDPOINT}/v1/lookupTables/${TABLE_ID}/row" \
-      || true
-    done
-
-  done < <(find . -type f -name orders -maxdepth 2 -print0)
+# need to make sure the file exists, even if the CC contains no orders
+touch '/tmp/payload'
+node '/app/uploader/process-updates.js'

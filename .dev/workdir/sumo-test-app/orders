@@ -1,0 +1,6 @@
+# shellcheck disable=SC2155
+
+export HEALTHCHECK='/healthcheck'
+export SECURITY_MODE='public'
+
+dockerbuild git@github.com:glg/test-sumo-logging-app.git#main

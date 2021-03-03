@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-docker build -t gds-clusterconfig-to-sumologic-sync:latest .
