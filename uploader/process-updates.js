@@ -17,6 +17,16 @@ const createConfig = () => {
   id = process.env.SUMOLOGIC_ACCESS_ID ?? id;
   key = process.env.SUMOLOGIC_ACCESS_KEY ?? key;
   endpoint = process.env.SUMOLOGIC_API_ENDPOINT ?? endpoint;
+  let { INPUT_TABLE_IDS: tableIds=null } = process.env;
+  if (tableIds === null) {
+    // production is default atm, until all configs are updated
+    tableIds = ["0000000001007719", "0000000000FF668A"]
+  } else {
+    tableIds = tableIds
+    .split(',')
+    .filter(v => v) // remove empty rows from array
+  }
+  console.log({tableIds});
   // return config object
   return {
     sumo: { id, key, endpoint }
@@ -24,9 +34,7 @@ const createConfig = () => {
     , clusterConfigExport: '/tmp/payload'
     , repoDir: process.env.GITHUB_REPOSITORY
     , targetCluster: process.env.CLUSTER
-    // TODO: Need to make these configurable, but have to find proper place
-    , tableIds: ["0000000001007719", "0000000000FF668A"] // PROD
-    //, tableIds: ["00000000010D6C07", "00000000010D4453"] // DEV
+    , tableIds
   };
 };
 
