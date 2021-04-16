@@ -179,7 +179,7 @@ const uploadToLookups = async ({sumo}, clusterServices, lookupTable) => {
           console.error(error);
           return {status: -1, data: null};
         });
-        console.log(`:: end upload ${kv({tableId})} ${kv({status})} ${kv(entry)}`);
+        console.log(`:: end upload ${kv({tableId})} ${kv({status})}`);
       }
     }
     , {concurrency: 1}
@@ -201,7 +201,7 @@ const removeExpiredEntries = async({sumo}, lookupTable) => {
       .catch(error => {
         return {status: -1, data: null};
       });
-      console.log(`:: end delete ${kv({tableId})} ${kv({status})} ${kv(primaryKeys)}`);
+      console.log(`:: end delete ${kv({tableId})} ${kv({status})}`);
     }
   }
 };
