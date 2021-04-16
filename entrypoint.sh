@@ -42,9 +42,9 @@ while IFS= read -r -d '' FILE; do
 
   # parse out the deploy commands we support
   IFS=$' \t' read -r TYPE REPOSITORY <<< \
-    "$(grep -e "^\(autodeploy\|dockerdeploy\|dockerbuild\)\s" "$FILE" | tail -n1)"
+    "$(grep -e "^\(autodeploy\|dockerdeploy\|dockerbuild\|jobdeploy\)\s" "$FILE" | tail -n1)"
 
-  if [[ "${TYPE}" == "dockerdeploy" ]]; then
+  if [[ "${TYPE}" =~ (dockerdeploy|jobdeploy) ]]; then
     # eg. github/glg/epi-screamer/gds-migration:latest
     if [[ "${REPOSITORY}" =~ ([^/]+)\/([^/]+)\/([^/]+)\/([^:]+)(:(.*))? ]]; then
       #                      ↑        ↑        ↑        ↑      ↑ ↑

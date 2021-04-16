@@ -1,0 +1,4 @@
+export ECS_SCHEDULED_TASK_CRON='*/15 * * * *'
+export CMD='["s3","sync","s3://someplace","s3://otherplace"]'
+
+jobdeploy github/glg/awscli/main:latest

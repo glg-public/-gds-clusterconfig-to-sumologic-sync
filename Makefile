@@ -24,6 +24,7 @@ shell: build
 		--env-file ".dev/env.sample" \
 		--env "SUMOLOGIC_ACCESS_ID" \
 		--env "SUMOLOGIC_ACCESS_KEY" \
+		--env "INPUT_TABLE_IDS=00000000010D6C07,00000000010D4453" \
 		--workdir "/github/workspace" \
 		--name "sample_action" \
 		--mount "type=bind,source=$(shell pwd)/entrypoint.sh,target=/app/entrypoint.sh,readonly" \
