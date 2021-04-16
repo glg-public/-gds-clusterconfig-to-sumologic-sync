@@ -201,7 +201,7 @@ const removeExpiredEntries = async({sumo}, lookupTable) => {
       .catch(error => {
         return {status: -1, data: null};
       });
-      console.log(`:: end delete ${kv({tableId})} ${kv({status})} ${kv(primaryKeys)}`);
+      console.log(`:: end delete ${kv({tableId})} ${kv({status})}`);
     }
   }
 };

@@ -52,7 +52,7 @@ const sumoJob = async ({sumo, url, admin=false, method='get'}) => {
     // with 1.5 seconds buffer, we run 40 jobs per minute max
     // 40 jobs * 3 min api calls = 120, which is still way under the 240/m
     // rate limit of sumo logic
-    console.log(`:: ${url} check job in ${ms}ms`);
+    console.log(`:: ${statusUrl(jobId)} check job in ${ms}ms`);
     await sleep(ms);
     const { status, data } = await sumoRequest({
       sumo, url: statusUrl(jobId), admin
@@ -60,12 +60,12 @@ const sumoJob = async ({sumo, url, admin=false, method='get'}) => {
     if (status === 200 && data.status === 'Success') {
       return true;
     }
-    console.log(`:: ${url} ${JSON.stringify({status, data}, null, 0)}`);
+    console.log(`:: ${statusUrl(jobId)} ${JSON.stringify({status, data}, null, 0)}`);
     return false
   }, false);
 
   if (!success) {
-    throw new Error(`:: ${url} job failed`);
+    throw new Error(`:: ${statusUrl(jobId)} job unsuccessful`);
   }
 
   const { status, data } = await sumoRequest({
