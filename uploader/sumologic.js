@@ -172,9 +172,13 @@ const sumoSearch = async ({sumo, url: initUrl, payload}) => {
     const {status, data} = await sumoRequest({sumo, url: statusUrl});
     const {state, messageCount, recordCount} = data;
 
-    if (status >= 200 && status <= 299 && state === "DONE GATHERING RESULTS") {
-      console.log(`:: messageCount='${messageCount}' recordCount='${recordCount}'`);
-      return true;
+    if (status >= 200 && status <= 299) {
+      if (state === "DONE GATHERING RESULTS") {
+        console.log(`:: messageCount='${messageCount}' recordCount='${recordCount}'`);
+        return true;
+      } else if (state === "GATHERING RESULTS") {
+        return false;
+      }
     }
     if (status === 429) {
       console.log(`:: ${statusUrl} ${JSON.stringify({status, data}, null, 0)}`);
