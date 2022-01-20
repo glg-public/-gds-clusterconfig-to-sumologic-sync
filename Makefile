@@ -36,5 +36,14 @@ reset_workdir:
 	rm -r ".dev/workdir"/*
 	git checkout -- ".dev/workdir/."
 
-.PHONY: main build rebuild shell reset_workdir
+lint:
+		docker pull "github/super-linter:v4"
+		docker run \
+				-e RUN_LOCAL=true \
+				-e VALIDATE_JAVASCRIPT_ES='true' \
+				-e VALIDATE_ALL_CODEBASE='true' \
+				-v "$(shell pwd):/tmp/lint:ro" \
+				"github/super-linter" 2>&1 | tee "/tmp/super-linter.log"
+
+.PHONY: main build rebuild shell reset_workdir lint
 
