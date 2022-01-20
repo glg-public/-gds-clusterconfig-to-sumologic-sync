@@ -37,7 +37,7 @@ reset_workdir:
 	git checkout -- ".dev/workdir/."
 
 lint:
-		docker pull "github/super-linter:latest"
+		docker pull "github/super-linter:v4"
 		docker run \
 				-e RUN_LOCAL=true \
 				-e VALIDATE_JAVASCRIPT_ES='true' \
